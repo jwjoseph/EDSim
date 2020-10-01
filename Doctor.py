@@ -45,7 +45,7 @@ class Doctor():
             return newpt
 
     def active_patient_need(self):
-        """if there is an active patient with stuff to do, return them, else none"""
+        """if there is an active patient with stuff to do, return them, else none - dispo comes first"""
         for patient in self.ActivePts:
             if patient.get_state() == "evaluated":
                 if patient.has_needs():
@@ -115,6 +115,13 @@ class Doctor():
         2. Check if there is a new patient to see
         3. Otherwise, pass
         """
+        if self.currentPt is None: # not actively working on a patient -- use not None as == is overloaded for comp
+            self.lastActionTimer = 0 # reset
+            self.currentPt == self.get_next_patient_action()
+
+        else:
+            self.eval_treat_patient()
+            
         print("Doctor", self.IDnum, ":", end=" ")
         print("Current patient:", end=" ")
         if self.currentPt is not None:
@@ -125,18 +132,13 @@ class Doctor():
             if pt.get_state() != "evaluated":
                 print(pt.get_ID(), pt.get_state(), end=" ")
             else:
-                print(pt.get_ID(), "evaluated|needs:", len(pt.needs), end=" ")
+                print(pt.get_ID(), "evaluated|needs:", pt.get_needs(), end="  ")
         print()
         print("    Dispositioned Patients: ", end=" ")
         for pt in self.DispoPts:
             print(pt.get_ID(), pt.get_state(), end=" ")
         print()
-        if self.currentPt is None: # not actively working on a patient -- use not None as == is overloaded for comp
-            self.lastActionTimer = 0 # reset
-            self.currentPt == self.get_next_patient_action()
 
-        else:
-            self.eval_treat_patient()
 
         return
 

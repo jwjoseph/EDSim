@@ -47,6 +47,12 @@ class Patient():
     def finish_rads(self):
         if "rads" in self.needs:
             self.needs.remove("rads")
+
+    def get_needs(self):
+        needstring = ""
+        for x in self.needs:
+            needstring += x
+        return needstring
     
 
     def MDupdate(self):
