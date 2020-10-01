@@ -22,11 +22,10 @@ class Patient():
         ESIdict = {1:[0.9, 0.0, 0.8], 2:[0.8, 0.0, 0.6], 3:[0.75, 0.0, 0.4], 4:[0.5, 0.0, 0.2], 5:[0.3, 0.0, 0.1]}
         if np.random.uniform(0,1) <= ESIdict[self.ESI][0]:
             self.needs.add("labs")
-        if np.random.uniform(0,1) <= ESIdict[self.ESI][1]:
-            self.needs.add("rads")
+        #if np.random.uniform(0,1) <= ESIdict[self.ESI][1]:
+        #    self.needs.add("rads")
         if np.random.uniform(0,1) <= ESIdict[self.ESI][2]:
             self.needs_admit = True
-
 
     def get_state(self):
         return self.state
@@ -34,13 +33,16 @@ class Patient():
     def get_ID(self):
         return self.ID
 
+    def has_needs(self):
+        return len(self.needs) > 0
+
     def set_doc(self, newdoc):
         self.doc = newdoc
 
     def finish_labs(self):
         if "labs" in self.needs:
             self.needs.remove("labs")
-        self.MDupdate()
+        #self.MDupdate()
 
     def finish_rads(self):
         if "rads" in self.needs:
@@ -82,18 +84,21 @@ class Patient():
 
 
 
-
+## changed from original priorityqueue ESI definitions
     def __lt__(self, other):
         # p1 < p2 calls p1.__lt__(p2)
-        return self.ESI < other.ESI
+        return self.ID > other.ID
     
     def __eq__(self, other):
         # p1 == p2 calls p1.__eq__(p2)
-        return self.ESI == other.ESI
+        return self.ID == other.ID
 
     def __gt__(self, other):
         # p1 < p2 calls p1.__lt__(p2)
-        return self.ESI > other.ESI
+        return self.ID < other.ID
+
+    def __repr__(self):
+        return self.ID
 
 import scipy as sp
 import numpy as np

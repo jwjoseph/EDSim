@@ -46,7 +46,7 @@ class Laboratory():
 
         for patient in self.ActivePts:
             probability = np.random.uniform(0,1)
-            if probability <= ((self.lab_rate)/60):
+            if probability <= (self.lab_rate/60):
                 self.finish_patient_labs(patient)
 
         return

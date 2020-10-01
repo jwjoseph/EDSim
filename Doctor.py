@@ -8,12 +8,12 @@ class Doctor():
         self.eval_rate = eval_rate # speed of initial eval (minutes)
         self.IDnum = Doctor.ID
         Doctor.ID += 1
-        self.NewPts = queue.PriorityQueue(1) # signed up, to be seen, currently capped at 1, but will be on priority - can bump for acute pt
+        self.NewPts = queue.Queue(1) # signed up, to be seen, currently capped at 1, but will be on priority - can bump for acute pt
         self.ActivePts = [] # list - everyone in it is waiting on something
         self.DispoPts = [] # currently can handle a lot of signout or dispo-ed patients
         self.currentPt = None # for the sake of simulation, only doing one H&P/action at a time, w/o interruption
         self.lastActionTimer = 0
-        print("Doctor", self.ID, "created.")
+        print("Doctor", self.IDnum, "created.")
 
     def get_time(self):
         return self.ED.get_time()
@@ -47,8 +47,14 @@ class Doctor():
     def active_patient_need(self):
         """if there is an active patient with stuff to do, return them, else none"""
         for patient in self.ActivePts:
-            if patient.get_state() != "evaluated":
+            if patient.get_state() == "evaluated":
+                if patient.has_needs():
+                    pass
+                else:
+                    return patient
+            else:
                 ### evaluated == already evaled, NTD for MD
+
                 return patient
         return None
 
@@ -96,8 +102,8 @@ class Doctor():
             ## dispo pt
             print("Doctor", self.IDnum, ": dispositioning patient", self.currentPt.get_ID() ,"at", self.get_time())
             self.currentPt.MDupdate()
-            self.ActivePts.remove(self.currentPt)
             self.DispoPts.append(self.currentPt)
+            self.ActivePts.remove(self.currentPt)
             self.currentPt = None
         else:
             self.currentPt.MDupdate()
@@ -109,11 +115,22 @@ class Doctor():
         2. Check if there is a new patient to see
         3. Otherwise, pass
         """
-        print("Doctor", self.IDnum, ": Active Patients: ", end="")
-        for pt in self.ActivePts:
-            print(pt.get_ID(), end=" ")
+        print("Doctor", self.IDnum, ":", end=" ")
+        print("Current patient:", end=" ")
+        if self.currentPt is not None:
+            print(self.currentPt.get_ID(), ":", self.currentPt.get_state(), end=" ")
         print()
-
+        print("    Active Patients: ", end=" ")
+        for pt in self.ActivePts:
+            if pt.get_state() != "evaluated":
+                print(pt.get_ID(), pt.get_state(), end=" ")
+            else:
+                print(pt.get_ID(), "evaluated|needs:", len(pt.needs), end=" ")
+        print()
+        print("    Dispositioned Patients: ", end=" ")
+        for pt in self.DispoPts:
+            print(pt.get_ID(), pt.get_state(), end=" ")
+        print()
         if self.currentPt is None: # not actively working on a patient -- use not None as == is overloaded for comp
             self.lastActionTimer = 0 # reset
             self.currentPt == self.get_next_patient_action()
