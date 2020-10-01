@@ -12,7 +12,6 @@ class Doctor():
         self.ActivePts = [] # list - everyone in it is waiting on something
         self.DispoPts = [] # currently can handle a lot of signout or dispo-ed patients
         self.currentPt = None # for the sake of simulation, only doing one H&P/action at a time, w/o interruption
-        self.lastActionTimer = 0
         print("Doctor", self.IDnum, "created.")
 
     def get_time(self):
@@ -87,16 +86,19 @@ class Doctor():
         to_do = self.currentPt.get_state()
         if to_do == "assigned":
             ## initial eval
-            if self.lastActionTimer < self.eval_rate:
-                if self.lastActionTimer == 0:
-                    print("Doctor", self.IDnum, ": Evaluating patient", self.currentPt.get_ID() ,"at", self.get_time())
-                self.lastActionTimer += 1
-                return
-            elif self.lastActionTimer >= self.eval_rate:
+            print("Doctor", self.IDnum, ": Evaluating patient", self.currentPt.get_ID() ,"at", self.get_time())
+            self.currentPt.MDupdate()
+            return
+            
+        elif to_do == "evaluating":
+            probability = np.random.uniform(0,1)
+            if probability <= (self.eval_rate / 60):
                 print("Doctor", self.IDnum, ": finished evaluating patient", self.currentPt.get_ID() ,"at", self.get_time())
                 self.currentPt.MDupdate()
                 self.currentPt = None
                 self.lastActionTimer = 0
+                return
+            else:
                 return
         elif to_do == "treated":
             ## dispo pt
@@ -121,7 +123,7 @@ class Doctor():
 
         else:
             self.eval_treat_patient()
-            
+
         print("Doctor", self.IDnum, ":", end=" ")
         print("Current patient:", end=" ")
         if self.currentPt is not None:

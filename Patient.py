@@ -62,6 +62,9 @@ class Patient():
             self.state = "assigned"
 
         elif self.state == "assigned":
+            self.state = "evaluating"
+
+        elif self.state == "evaluating":
             if len(self.needs) < 1:
                 self.state = "treated"
                 #print("Patient", self.ID, ": fully treated at time ", self.startTime) ##debug
