@@ -8,9 +8,9 @@ class ED():
         self.department_size = department_size
         self.waiting_size = waiting_size
         self.WR = queue.PriorityQueue(waiting_size)
-        self.DoctorList.append(Doctor(self, 0.75, 10, 8))
-        self.DoctorList.append(Doctor(self, 0.75, 10, 8))
-        self.Laboratory = Laboratory(self, 12)
+        for i in range(num_docs):
+            self.DoctorList.append(Doctor(self, 1, 10, 8))
+        self.Laboratory = Laboratory(self, 20)
         self.LWBSCount = 0
 
 
@@ -41,7 +41,7 @@ class ED():
         return str(self.WR.qsize()) + " / " + str(self.waiting_size)
 
     def generate_patient_prob(self):
-        """generate a patient based on a poisson distribution, place it if there's room..."""
+        """generate a patient based on a bernoulli process, place it if there's room..."""
         probability = np.random.uniform(0,1)
         if probability <= (self.patient_rate / 60):
             # a patient was generated
