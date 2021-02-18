@@ -1,17 +1,26 @@
 class ED():
     def __init__(self, num_docs, patient_rate, department_size, waiting_size):
         self.erack = queue.PriorityQueue()
+        self.rads_queue = queue.PriorityQueue()
         self.time = 0
+        num_CTs = 1
+
         self.DoctorList = []
+        self.CTList = []
         self.DispoList = [] # this will need to get split to admit/dc
-        self.patient_rate = patient_rate ## patient rate in terms of patients per hour
+        self.patient_rate = patient_rate ## patient rate in terms of new patients per hour
         self.department_size = department_size
         self.waiting_size = waiting_size
         self.WR = queue.PriorityQueue(waiting_size)
         for i in range(num_docs):
             self.DoctorList.append(Doctor(self, 1, 10, 8))
+
+        for j in range(num_CTs):
+            self.CTList.append(CT(self, 10))
+
         self.Laboratory = Laboratory(self, 20)
         self.LWBSCount = 0
+        self.stats = Stats(num_docs, patient_rate, department_size, waiting_size)
 
 
     def get_time(self):
@@ -41,7 +50,8 @@ class ED():
         return str(self.WR.qsize()) + " / " + str(self.waiting_size)
 
     def generate_patient_prob(self):
-        """generate a patient based on a bernoulli process, place it if there's room..."""
+        """generate a patient based on a bernoulli process, place it if there's room...
+        current behavior - patients LWBS when there is no room in the WR"""
         probability = np.random.uniform(0,1)
         if probability <= (self.patient_rate / 60):
             # a patient was generated
@@ -63,16 +73,45 @@ class ED():
 
     def send_patient_labs(self, patient):
         self.Laboratory.get_next_patient(patient)
+
+    def send_patient_rads(self, patient):
+        self.rads_queue.put(patient)
+
+    def send_patient_CT(self):
+        return self.rads_queue.get()
+
+    def rads_empty(self):
+        return self.rads_queue.empty()
+
+
+
+    def output_stats(self):
+        """output a csv of the stats to file from the ED's stats object"""
+        output = self.stats.output()
+        fieldnames = ["time", "waiting room", "in department", "to be seen"]
+        with open('stats.csv','w', newline='') as outfile:
+            writer = csv.DictWriter(outfile, fieldnames)
+            writer.writeheader()
+            for key,val in sorted(output.items()):
+                row = {'time': key}
+                row.update(val)
+                writer.writerow(row)
         
     def update(self):
+        """main function for the MVC model. calls an update for every agent within the ED
+        starts by checking whether to generate a patient, then runs an update for each agent
+        finally outputs to stats"""
         print("Time:", self.time, "  In waiting room:", self.get_total_WR(), "  In department:", self.get_total_volume(), "  To be seen:", self.erack.qsize())
         self.generate_patient_prob()
         self.Laboratory.update()
+        for ct in self.CTList:
+            ct.update()
         for doc in self.DoctorList:
             doc.update()
         for pt in self.DispoList:
             pt.update()
         self.update_WR_erack()
+        self.stats.update(self.time,  self.WR.qsize(), self.get_volume(), self.erack.qsize())
 
         self.time += 1
         print()
@@ -82,7 +121,10 @@ class ED():
 import scipy as sp
 import numpy as np
 import queue
+import csv
 
 from Doctor import Doctor
 from Patient import Patient
 from Laboratory import Laboratory
+from Stats import Stats
+from CT import CT

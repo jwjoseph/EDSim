@@ -20,6 +20,6 @@ myED = ED(2, 12, 20, 10)
 for i in range(200):
     myED.update()
 
-
+myED.output_stats()
 
 
