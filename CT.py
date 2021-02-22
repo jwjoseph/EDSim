@@ -1,7 +1,7 @@
 class CT():
     ID = 0
     """Simulates a CT scanner. Sees patients with rads requests. For simplicity, has a single buffer,
-        only accomodates one patient at a time!"""
+        only accomodates one patient at a time - the rads queue is maintained by the ED object"""
 
     def __init__(self, ED, CT_rate):
         self.ED = ED
@@ -26,13 +26,14 @@ class CT():
             print("Taking patient", self.ActivePt.get_ID(), "to CT", self.IDnum, "at", self.ED.get_time())
 
     def finish_patient_CT(self, patient):
-        """on update, with successful lab copmletion, set patient's labs to done and remove from the lab queue"""
+        """on update, with successful CT copmletion, set patient's 'rads' flag to done and remove from the CT queue"""
+
         patient.finish_rads()
         
         print("CT", self.IDnum, "finished scans for Patient", self.ActivePt.get_ID(), "at", self.ED.get_time())
     
     def update(self):
-        """check if patients need labs, if so, add to queue. if labs finish for a patient, set them to done and
+        """check if patients need imaging, if so, add to queue. if imaging finishes for a patient, set them to done and
         take them out of the queue"""
         print("CT", self.IDnum, ": Active Patient: ", end="")
         if self.ActivePt is not None:

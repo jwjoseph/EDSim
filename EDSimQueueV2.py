@@ -15,9 +15,9 @@ def BernoulliTrial(probability):
     return False
 
 
-myED = ED(2, 12, 20, 10)
+myED = ED(2, 10, 12, 20, 10, 20)
 
-for i in range(200):
+for i in range(480):
     myED.update()
 
 myED.output_stats()

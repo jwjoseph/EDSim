@@ -113,7 +113,7 @@ class Doctor():
     
     def update(self):
         """General behavior - if not currently working on a patient:
-        1. Check if anyone in the active list can be dispositioned
+        1. Check if anyone in the active list can be dispositioned # dispo takes priority
         2. Check if there is a new patient to see
         3. Otherwise, pass
         """

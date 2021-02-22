@@ -1,5 +1,5 @@
 class ED():
-    def __init__(self, num_docs, patient_rate, department_size, waiting_size):
+    def __init__(self, num_docs, doc_rate, patient_rate, department_size, waiting_size, admit_rate):
         self.erack = queue.PriorityQueue()
         self.rads_queue = queue.PriorityQueue()
         self.time = 0
@@ -7,13 +7,18 @@ class ED():
 
         self.DoctorList = []
         self.CTList = []
-        self.DispoList = [] # this will need to get split to admit/dc
+        self.DispoList = []
+        self.AdmitList = []
         self.patient_rate = patient_rate ## patient rate in terms of new patients per hour
         self.department_size = department_size
         self.waiting_size = waiting_size
         self.WR = queue.PriorityQueue(waiting_size)
+
+        self.admit_rate = admit_rate ## average time in minutes to admit a patient
+        self.doc_rate = doc_rate
+
         for i in range(num_docs):
-            self.DoctorList.append(Doctor(self, 1, 10, 8))
+            self.DoctorList.append(Doctor(self, 1, self.doc_rate, 8))
 
         for j in range(num_CTs):
             self.CTList.append(CT(self, 10))
@@ -84,6 +89,11 @@ class ED():
         return self.rads_queue.empty()
 
 
+    def admit_patient(self, patient):
+        probability = np.random.uniform(0,1)
+        if probability <= (self.admit_rate/60):
+            self.AdmitList.remove(patient)
+
 
     def output_stats(self):
         """output a csv of the stats to file from the ED's stats object"""
@@ -110,6 +120,8 @@ class ED():
             doc.update()
         for pt in self.DispoList:
             pt.update()
+        for pt in self.AdmitList:
+            self.admit_patient(pt)
         self.update_WR_erack()
         self.stats.update(self.time,  self.WR.qsize(), self.get_volume(), self.erack.qsize())
 
