@@ -132,7 +132,7 @@ class Doctor():
         print("    Active Patients: ", end=" ")
         for pt in self.ActivePts:
             if pt.get_state() != "evaluated":
-                print(pt.get_ID(), pt.get_state(), end=" ")
+                print(pt.get_ID(), pt.get_state(), end="  ")
             else:
                 print(pt.get_ID(), "evaluated|needs:", pt.get_needs(), end="  ")
         print()

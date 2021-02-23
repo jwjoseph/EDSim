@@ -21,7 +21,7 @@ class ED():
             self.DoctorList.append(Doctor(self, 1, self.doc_rate, 8))
 
         for j in range(num_CTs):
-            self.CTList.append(CT(self, 10))
+            self.CTList.append(CT(self, 15))
 
         self.Laboratory = Laboratory(self, 20)
         self.LWBSCount = 0
@@ -36,10 +36,19 @@ class ED():
         """setter for dispolist - add pt"""
         self.DispoList.append(pt)
 
+    def admitAdd(self, pt):
+        """setter for dispolist - add pt"""
+        self.AdmitList.append(pt)
+
     def dispoPop(self, pt):
         """setter for dispolist - rem pt"""
         # version 2 will need to delete
+        print("Patient", pt.get_ID(), "discharged at time", self.get_time())
         self.DispoList.remove(pt)
+
+    def admitPop(self, pt):
+        print("Patient", pt.get_ID(), "admitted at time", self.get_time())
+        self.AdmitList.remove(pt)
 
     def get_volume(self):
         total = self.erack.qsize()
@@ -92,7 +101,7 @@ class ED():
     def admit_patient(self, patient):
         probability = np.random.uniform(0,1)
         if probability <= (self.admit_rate/60):
-            self.AdmitList.remove(patient)
+            patient.update()
 
 
     def output_stats(self):

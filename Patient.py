@@ -21,6 +21,7 @@ class Patient():
 
         # Based on ESI, generate a likelihood of needing labs, radiology, admission
         ESIdict = {1:[0.9, 0.9, 0.8], 2:[0.8, 0.7, 0.6], 3:[0.75, 0.6, 0.4], 4:[0.5, 0.2, 0.2], 5:[0.3, 0.0, 0.1]}
+        
         if np.random.uniform(0,1) <= ESIdict[self.ESI][0]:
             self.needs.add("labs")
         if np.random.uniform(0,1) <= ESIdict[self.ESI][1]:
@@ -57,8 +58,11 @@ class Patient():
 
     def get_needs(self):
         needstring = ""
-        for x in self.needs:
-            needstring += x
+        if len(self.needs) == 2:
+            needstring += "rads, labs"
+        elif len(self.needs) > 0:
+            for x in self.needs:
+                needstring += x
         return needstring
 
     def get_LOS(self):
@@ -94,7 +98,10 @@ class Patient():
         elif self.state == "treated":
             self.state = "dispositioned"
             self.doc2dec_time = self.ED.get_time() - self.d2doc_time
-            self.ED.dispoAdd(self)
+            if self.needs_admit:
+                self.ED.admitAdd(self)
+            else:
+                self.ED.dispoAdd(self)
 
     def update(self):
         """state (and other) changes due to simulation time"""
@@ -102,7 +109,10 @@ class Patient():
         if self.state == "dispositioned":
             self.LOS = self.ED.get_time() - self.startTime
             self.doc.DispoPts.remove(self)
-            self.ED.dispoPop(self)
+            if self.needs_admit:
+                self.ED.admitPop(self)
+            else:
+                self.ED.dispoPop(self)
 
 
 
