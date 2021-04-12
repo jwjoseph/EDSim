@@ -23,9 +23,11 @@ class Patient():
         ESIdict = {1:[0.9, 0.9, 0.8], 2:[0.8, 0.7, 0.6], 3:[0.75, 0.6, 0.4], 4:[0.5, 0.2, 0.2], 5:[0.3, 0.0, 0.1]}
         
         if np.random.uniform(0,1) <= ESIdict[self.ESI][0]:
-            self.needs.add("labs")
+            if self.ED.get_labs_enabled():
+                self.needs.add("labs")
         if np.random.uniform(0,1) <= ESIdict[self.ESI][1]:
-           self.needs.add("rads")
+            if self.ED.get_CT_enabled():
+                self.needs.add("rads")
         if np.random.uniform(0,1) <= ESIdict[self.ESI][2]:
             self.needs_admit = True
 

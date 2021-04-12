@@ -1,9 +1,14 @@
 class ED():
-    def __init__(self, num_docs, doc_rate, patient_rate, department_size, waiting_size, admit_rate):
+    def __init__(self, num_docs, doc_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled=True, lab_rate=20, CT_enabled=True, num_CTs = 1, CT_rate=15):
         self.erack = queue.PriorityQueue()
         self.rads_queue = queue.PriorityQueue()
         self.time = 0
-        num_CTs = 1
+        self.num_CTs = num_CTs
+        self.CT_rate = CT_rate
+        self.lab_rate = lab_rate
+        self.num_docs = num_docs
+        self.labs_enabled = labs_enabled
+        self.CT_enabled = CT_enabled
 
         self.DoctorList = []
         self.CTList = []
@@ -17,13 +22,16 @@ class ED():
         self.admit_rate = admit_rate ## average time in minutes to admit a patient
         self.doc_rate = doc_rate
 
-        for i in range(num_docs):
+        for i in range(self.num_docs):
             self.DoctorList.append(Doctor(self, 1, self.doc_rate, 8))
 
-        for j in range(num_CTs):
-            self.CTList.append(CT(self, 15))
 
-        self.Laboratory = Laboratory(self, 20)
+        if self.CT_enabled:
+            for j in range(self.num_CTs):
+                self.CTList.append(CT(self, self.CT_rate))
+
+        if self.labs_enabled:
+            self.Laboratory = Laboratory(self, self.lab_rate)
         self.LWBSCount = 0
         self.stats = Stats(num_docs, patient_rate, department_size, waiting_size)
 
@@ -31,6 +39,12 @@ class ED():
     def get_time(self):
         """getter for children"""
         return self.time
+
+    def get_labs_enabled(self):
+        return self.labs_enabled
+
+    def get_CT_enabled(self):
+        return self.CT_enabled
 
     def dispoAdd(self, pt):
         """setter for dispolist - add pt"""
@@ -100,7 +114,8 @@ class ED():
 
     def admit_patient(self, patient):
         probability = np.random.uniform(0,1)
-        if probability <= (self.admit_rate/60):
+        admit_time = 60/self.admit_rate
+        if probability <= (admit_time/60):
             patient.update()
 
 
@@ -122,9 +137,12 @@ class ED():
         finally outputs to stats"""
         print("Time:", self.time, "  In waiting room:", self.get_total_WR(), "  In department:", self.get_total_volume(), "  To be seen:", self.erack.qsize())
         self.generate_patient_prob()
-        self.Laboratory.update()
-        for ct in self.CTList:
-            ct.update()
+        if self.labs_enabled:
+           self.Laboratory.update()
+
+        if self.CT_enabled:
+            for ct in self.CTList:
+                ct.update()
         for doc in self.DoctorList:
             doc.update()
         for pt in self.DispoList:

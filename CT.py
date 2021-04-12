@@ -40,7 +40,8 @@ class CT():
             print(self.ActivePt.get_ID(), end=" ")
 
             probability = np.random.uniform(0,1)
-            if probability <= (self.CT_rate/60):
+            evals_hour = 60 / self.CT_rate # avg cts per hour
+            if probability <= (evals_hour/60):
                 self.finish_patient_CT(self.ActivePt)
                 self.ActivePt = None
 

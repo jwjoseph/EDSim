@@ -92,7 +92,8 @@ class Doctor():
             
         elif to_do == "evaluating":
             probability = np.random.uniform(0,1)
-            if probability <= (self.eval_rate / 60):
+            evals_hour = 60 / self.eval_rate
+            if probability <= (evals_hour / 60):
                 print("Doctor", self.IDnum, ": finished evaluating patient", self.currentPt.get_ID() ,"at", self.get_time())
                 self.currentPt.MDupdate()
                 self.currentPt = None
