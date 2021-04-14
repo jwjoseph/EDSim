@@ -58,10 +58,14 @@ class ED():
         """setter for dispolist - rem pt"""
         # version 2 will need to delete
         print("Patient", pt.get_ID(), "discharged at time", self.get_time())
+        LOS_time = pt.get_LOS()
+        self.stats.update_LOS(LOS_time)
         self.DispoList.remove(pt)
 
     def admitPop(self, pt):
         print("Patient", pt.get_ID(), "admitted at time", self.get_time())
+        LOS_time = pt.get_LOS()
+        self.stats.update_LOS(LOS_time)
         self.AdmitList.remove(pt)
 
     def get_volume(self):
@@ -98,6 +102,9 @@ class ED():
             if not self.WR.empty():
                 newpt = self.WR.get()
                 self.erack.put(newpt)
+                newpt.set_WR_time()
+                wait_time = newpt.get_LOS()
+                self.stats.update_waiting_time(wait_time)
 
     def send_patient_labs(self, patient):
         self.Laboratory.get_next_patient(patient)
@@ -122,7 +129,7 @@ class ED():
     def output_stats(self):
         """output a csv of the stats to file from the ED's stats object"""
         output = self.stats.output()
-        fieldnames = ["time", "waiting room", "in department", "to be seen"]
+        fieldnames = ["time", "waiting room", "in department", "to be seen", "average wait time", "average door2doc time", "average LOS"]
         with open('stats.csv','w', newline='') as outfile:
             writer = csv.DictWriter(outfile, fieldnames)
             writer.writeheader()
@@ -151,6 +158,7 @@ class ED():
             self.admit_patient(pt)
         self.update_WR_erack()
         self.stats.update(self.time,  self.WR.qsize(), self.get_volume(), self.erack.qsize())
+        self.stats.output_times(self.time)
 
         self.time += 1
         print()

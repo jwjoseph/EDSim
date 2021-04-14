@@ -69,12 +69,16 @@ class Patient():
 
     def get_LOS(self):
         return self.ED.get_time() - self.startTime
+
+    def set_WR_time(self):
+        self.wr_time = self.get_LOS()
     
 
     def MDupdate(self):
         """state changes due to MD"""
         if self.state == "unassigned":
             self.d2doc_time = self.ED.get_time() - self.startTime
+            self.ED.stats.update_to_be_seen_time(self.d2doc_time)
             self.state = "assigned"
 
         elif self.state == "assigned":
