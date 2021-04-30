@@ -17,7 +17,8 @@ class Patient():
         self.doc2dec_time = 0
 
         Patient.ID += 1
-        print("Patient", self.ID, ": I have arrived at time ", self.startTime)
+        if self.ED.get_verbose():
+            print("Patient", self.ID, ": I have arrived at time ", self.startTime)
 
         # Based on ESI, generate a likelihood of needing labs, radiology, admission
         ESIdict = {1:[0.9, 0.9, 0.8], 2:[0.8, 0.7, 0.6], 3:[0.75, 0.6, 0.4], 4:[0.5, 0.2, 0.2], 5:[0.3, 0.0, 0.1]}
@@ -111,7 +112,8 @@ class Patient():
 
     def update(self):
         """state (and other) changes due to simulation time"""
-        print("Patient", self.ID, self.state, "at time", self.ED.get_time())
+        if self.ED.get_verbose():
+            print("Patient", self.ID, self.state, "at time", self.ED.get_time())
         if self.state == "dispositioned":
             self.LOS = self.ED.get_time() - self.startTime
             self.doc.DispoPts.remove(self)

@@ -18,6 +18,17 @@ class Stats():
 		self.total_patients_dispo = 0 # total number of patients dispositioned
 		self.average_LOS = 0
 
+		self.LWBS = 0
+
+	def update_total_patients(self):
+		"""adds a patient to the total"""
+		self.total_patients += 1
+
+	def update_LWBS(self):
+		"""add a patient to the LWBS total"""
+		self.LWBS += 1
+
+
 	def update_waiting_time(self, time):
 		"""increase the aggregate waiting time, update the average"""
 		self.total_waiting_time += time
@@ -51,6 +62,7 @@ class Stats():
 import scipy as sp
 import numpy as np
 import csv
+import matplotlib.pyplot as plt
 
 from ED import ED
 from Patient import Patient

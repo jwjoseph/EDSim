@@ -9,7 +9,8 @@ class Laboratory():
         self.IDnum = Laboratory.ID
         Laboratory.ID += 1
         self.ActivePts = [] # dict - everyone in it is waiting on something
-        print("Laboratory", self.ID, "created.")
+        if self.ED.get_verbose():
+            print("Laboratory", self.ID, "created.")
 
     def get_time(self):
         """getter for simulation time"""
@@ -27,22 +28,25 @@ class Laboratory():
     def get_next_patient(self, patient):
         """adds a patient to the lab buffer. called by the ED to put a new patient into the lab queue."""
         self.ActivePts.append(patient)
-        print("Sending labs for Patient", patient.get_ID(), "at", self.ED.get_time())
+        if self.ED.get_verbose():
+            print("Sending labs for Patient", patient.get_ID(), "at", self.ED.get_time())
 
     def finish_patient_labs(self, patient):
         """on update, with successful lab copmletion, set patient's labs to done and remove from the lab queue"""
         patient.finish_labs()
         self.ActivePts.remove(patient)
-        print("Laboratory", self.IDnum, "finished labs for Patient", patient.get_ID(), "at", self.ED.get_time())
+        if self.ED.get_verbose():
+            print("Laboratory", self.IDnum, "finished labs for Patient", patient.get_ID(), "at", self.ED.get_time())
 
     
     def update(self):
         """check if patients need labs, if so, add to queue. if labs finish for a patient, set them to done and
         take them out of the queue"""
-        print("Lab", self.IDnum, ": Active Patients: ", end="")
-        for pt in self.ActivePts:
-            print(pt.get_ID(), end=" ")
-        print()
+        if self.ED.get_verbose():
+            print("Lab", self.IDnum, ": Active Patients: ", end="")
+            for pt in self.ActivePts:
+                print(pt.get_ID(), end=" ")
+            print()
 
         for patient in self.ActivePts:
             probability = np.random.uniform(0,1)

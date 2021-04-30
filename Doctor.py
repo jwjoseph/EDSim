@@ -12,7 +12,8 @@ class Doctor():
         self.ActivePts = [] # list - everyone in it is waiting on something
         self.DispoPts = [] # currently can handle a lot of signout or dispo-ed patients
         self.currentPt = None # for the sake of simulation, only doing one H&P/action at a time, w/o interruption
-        print("Doctor", self.IDnum, "created.")
+        if self.ED.get_verbose():
+            print("Doctor", self.IDnum, "created.")
 
     def get_time(self):
         return self.ED.get_time()
@@ -29,7 +30,8 @@ class Doctor():
             if np.random.uniform(0,1) <= self.pickup_rate:
                 newpatient = self.erack.get()
                 self.NewPts.put(newpatient)
-                print("Doctor", self.IDnum, ": Signed up for Patient", newpatient.get_ID(), "at", self.get_time())
+                if self.ED.get_verbose():
+                    print("Doctor", self.IDnum, ": Signed up for Patient", newpatient.get_ID(), "at", self.get_time())
                 newpatient.set_doc(self)
                 return newpatient
         return None
@@ -86,7 +88,8 @@ class Doctor():
         to_do = self.currentPt.get_state()
         if to_do == "assigned":
             ## initial eval
-            print("Doctor", self.IDnum, ": Evaluating patient", self.currentPt.get_ID() ,"at", self.get_time())
+            if self.ED.get_verbose():
+                print("Doctor", self.IDnum, ": Evaluating patient", self.currentPt.get_ID() ,"at", self.get_time())
             self.currentPt.MDupdate()
             return
             
@@ -94,7 +97,8 @@ class Doctor():
             probability = np.random.uniform(0,1)
             evals_hour = 60 / self.eval_rate
             if probability <= (evals_hour / 60):
-                print("Doctor", self.IDnum, ": finished evaluating patient", self.currentPt.get_ID() ,"at", self.get_time())
+                if self.ED.get_verbose():
+                    print("Doctor", self.IDnum, ": finished evaluating patient", self.currentPt.get_ID() ,"at", self.get_time())
                 self.currentPt.MDupdate()
                 self.currentPt = None
                 self.lastActionTimer = 0
@@ -103,7 +107,8 @@ class Doctor():
                 return
         elif to_do == "treated":
             ## dispo pt
-            print("Doctor", self.IDnum, ": dispositioning patient", self.currentPt.get_ID() ,"at", self.get_time())
+            if self.ED.get_verbose():
+                print("Doctor", self.IDnum, ": dispositioning patient", self.currentPt.get_ID() ,"at", self.get_time())
             self.currentPt.MDupdate()
             self.DispoPts.append(self.currentPt)
             self.ActivePts.remove(self.currentPt)
@@ -125,22 +130,23 @@ class Doctor():
         else:
             self.eval_treat_patient()
 
-        print("Doctor", self.IDnum, ":", end=" ")
-        print("Current patient:", end=" ")
-        if self.currentPt is not None:
-            print(self.currentPt.get_ID(), ":", self.currentPt.get_state(), end=" ")
-        print()
-        print("    Active Patients: ", end=" ")
-        for pt in self.ActivePts:
-            if pt.get_state() != "evaluated":
-                print(pt.get_ID(), pt.get_state(), end="  ")
-            else:
-                print(pt.get_ID(), "evaluated|needs:", pt.get_needs(), end="  ")
-        print()
-        print("    Dispositioned Patients: ", end=" ")
-        for pt in self.DispoPts:
-            print(pt.get_ID(), pt.get_state(), end=" ")
-        print()
+        if self.ED.get_verbose():
+            print("Doctor", self.IDnum, ":", end=" ")
+            print("Current patient:", end=" ")
+            if self.currentPt is not None:
+                print(self.currentPt.get_ID(), ":", self.currentPt.get_state(), end=" ")
+            print()
+            print("    Active Patients: ", end=" ")
+            for pt in self.ActivePts:
+                if pt.get_state() != "evaluated":
+                    print(pt.get_ID(), pt.get_state(), end="  ")
+                else:
+                    print(pt.get_ID(), "evaluated|needs:", pt.get_needs(), end="  ")
+            print()
+            print("    Dispositioned Patients: ", end=" ")
+            for pt in self.DispoPts:
+                print(pt.get_ID(), pt.get_state(), end=" ")
+            print()
 
 
         return

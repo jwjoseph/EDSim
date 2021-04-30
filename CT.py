@@ -9,7 +9,8 @@ class CT():
         self.IDnum = CT.ID
         CT.ID += 1
         self.ActivePt = None # only one at a time.
-        print("CT", self.ID, "created.")
+        if self.ED.get_verbose():
+            print("CT", self.ID, "created.")
 
     def get_time(self):
         """getter for simulation time"""
@@ -23,21 +24,24 @@ class CT():
         if not self.ED.rads_empty():
             newpatient = self.ED.send_patient_CT()
             self.ActivePt = newpatient
-            print("Taking patient", self.ActivePt.get_ID(), "to CT", self.IDnum, "at", self.ED.get_time())
+            if self.ED.get_verbose():
+                print("Taking patient", self.ActivePt.get_ID(), "to CT", self.IDnum, "at", self.ED.get_time())
 
     def finish_patient_CT(self, patient):
         """on update, with successful CT copmletion, set patient's 'rads' flag to done and remove from the CT queue"""
 
         patient.finish_rads()
-        
-        print("CT", self.IDnum, "finished scans for Patient", self.ActivePt.get_ID(), "at", self.ED.get_time())
+        if self.ED.get_verbose():
+            print("CT", self.IDnum, "finished scans for Patient", self.ActivePt.get_ID(), "at", self.ED.get_time())
     
     def update(self):
         """check if patients need imaging, if so, add to queue. if imaging finishes for a patient, set them to done and
         take them out of the queue"""
-        print("CT", self.IDnum, ": Active Patient: ", end="")
+        if self.ED.get_verbose():
+            print("CT", self.IDnum, ": Active Patient: ", end="")
         if self.ActivePt is not None:
-            print(self.ActivePt.get_ID(), end=" ")
+            if self.ED.get_verbose():
+                print(self.ActivePt.get_ID(), end=" ")
 
             probability = np.random.uniform(0,1)
             evals_hour = 60 / self.CT_rate # avg cts per hour

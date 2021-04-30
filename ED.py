@@ -1,5 +1,5 @@
 class ED():
-    def __init__(self, num_docs, doc_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled=True, lab_rate=20, CT_enabled=True, num_CTs = 1, CT_rate=15):
+    def __init__(self, num_docs, doc_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled=True, lab_rate=20, CT_enabled=True, num_CTs = 1, CT_rate=15, verbose=True):
         self.erack = queue.PriorityQueue()
         self.rads_queue = queue.PriorityQueue()
         self.time = 0
@@ -22,6 +22,8 @@ class ED():
         self.admit_rate = admit_rate ## average time in minutes to admit a patient
         self.doc_rate = doc_rate
 
+        self.verbose = verbose ## use debug / status messages
+
         for i in range(self.num_docs):
             self.DoctorList.append(Doctor(self, 1, self.doc_rate, 8))
 
@@ -32,7 +34,7 @@ class ED():
 
         if self.labs_enabled:
             self.Laboratory = Laboratory(self, self.lab_rate)
-        self.LWBSCount = 0
+
         self.stats = Stats(num_docs, patient_rate, department_size, waiting_size)
 
 
@@ -40,11 +42,21 @@ class ED():
         """getter for children"""
         return self.time
 
+    def get_time_pretty(self):
+        """return time in hours:minutes, let default be 0700"""
+        hours = 7 + (self.get_time() // 60) % 24 
+        minutes = self.get_time() % 60
+        return str(hours) + ":" + str(minutes)
+
     def get_labs_enabled(self):
         return self.labs_enabled
 
     def get_CT_enabled(self):
         return self.CT_enabled
+
+    def set_patient_rate(self, rate):
+        """update pph"""
+        self.patient_rate = rate
 
     def dispoAdd(self, pt):
         """setter for dispolist - add pt"""
@@ -57,13 +69,15 @@ class ED():
     def dispoPop(self, pt):
         """setter for dispolist - rem pt"""
         # version 2 will need to delete
-        print("Patient", pt.get_ID(), "discharged at time", self.get_time())
+        if self.get_verbose():
+            print("Patient", pt.get_ID(), "discharged at time", self.get_time())
         LOS_time = pt.get_LOS()
         self.stats.update_LOS(LOS_time)
         self.DispoList.remove(pt)
 
     def admitPop(self, pt):
-        print("Patient", pt.get_ID(), "admitted at time", self.get_time())
+        if self.get_verbose():
+            print("Patient", pt.get_ID(), "admitted at time", self.get_time())
         LOS_time = pt.get_LOS()
         self.stats.update_LOS(LOS_time)
         self.AdmitList.remove(pt)
@@ -93,8 +107,9 @@ class ED():
                 self.WR.put(Patient(self, 3))
             else:
                 newpt = Patient(self, 3)
-                print("Patient", newpt.get_ID(), "left without being seen!")
-                self.LWBSCount += 1
+                if self.get_verbose():
+                    print("Patient", newpt.get_ID(), "left without being seen!")
+                self.stats.update_LWBS()
 
     def update_WR_erack(self):
         """check if patients can be brought from the WR to the erack"""
@@ -120,6 +135,7 @@ class ED():
 
 
     def admit_patient(self, patient):
+        """admits a patient who is waiting on admission - later update based on capacity"""
         probability = np.random.uniform(0,1)
         admit_time = 60/self.admit_rate
         if probability <= (admit_time/60):
@@ -137,12 +153,17 @@ class ED():
                 row = {'time': key}
                 row.update(val)
                 writer.writerow(row)
+
+    def get_verbose(self):
+        return self.verbose
+
         
     def update(self):
         """main function for the MVC model. calls an update for every agent within the ED
         starts by checking whether to generate a patient, then runs an update for each agent
         finally outputs to stats"""
-        print("Time:", self.time, "  In waiting room:", self.get_total_WR(), "  In department:", self.get_total_volume(), "  To be seen:", self.erack.qsize())
+        if self.get_verbose():
+            print("Time:", self.get_time_pretty(), "(" + str(self.get_time()) + ")" "  In waiting room:", self.get_total_WR(), "  In department:", self.get_total_volume(), "  To be seen:", self.erack.qsize())
         self.generate_patient_prob()
         if self.labs_enabled:
            self.Laboratory.update()
