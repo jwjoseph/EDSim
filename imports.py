@@ -2,6 +2,7 @@ import scipy as sp
 import numpy as np
 import pandas as pd
 import queue
+import csv
 import matplotlib.pyplot as plt
 
 from Doctor import Doctor

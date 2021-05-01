@@ -52,7 +52,8 @@ class CT():
         else:
             self.get_next_patient()
 
-        print()
+        if self.ED.get_verbose():
+            print()
 
         return
 

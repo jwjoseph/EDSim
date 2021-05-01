@@ -1,5 +1,6 @@
 class ED():
-    def __init__(self, num_docs, doc_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled=True, lab_rate=20, CT_enabled=True, num_CTs = 1, CT_rate=15, verbose=True):
+    def __init__(self, ID_num, num_docs, doc_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled=True, lab_rate=20, CT_enabled=True, num_CTs = 1, CT_rate=15, verbose=True):
+        self.ID_num = ID_num
         self.erack = queue.PriorityQueue()
         self.rads_queue = queue.PriorityQueue()
         self.time = 0
@@ -143,16 +144,7 @@ class ED():
 
 
     def output_stats(self):
-        """output a csv of the stats to file from the ED's stats object"""
-        output = self.stats.output()
-        fieldnames = ["time", "waiting room", "in department", "to be seen", "average wait time", "average door2doc time", "average LOS"]
-        with open('stats.csv','w', newline='') as outfile:
-            writer = csv.DictWriter(outfile, fieldnames)
-            writer.writeheader()
-            for key,val in sorted(output.items()):
-                row = {'time': key}
-                row.update(val)
-                writer.writerow(row)
+        return self.stats.output_stats()
 
     def get_verbose(self):
         return self.verbose
@@ -178,12 +170,11 @@ class ED():
         for pt in self.AdmitList:
             self.admit_patient(pt)
         self.update_WR_erack()
-        self.stats.update(self.time,  self.WR.qsize(), self.get_volume(), self.erack.qsize())
-        self.stats.output_times(self.time)
-
+        self.stats.update(self.ID_num, self.time,  self.WR.qsize(), self.get_volume(), self.erack.qsize())
+        if self.get_verbose():
+            self.stats.output_times(self.time)
+            print()
         self.time += 1
-        print()
-
 
 
 import scipy as sp
