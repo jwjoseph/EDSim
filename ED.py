@@ -1,5 +1,5 @@
 class ED():
-    def __init__(self, ID_num, num_docs, doc_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled=True, lab_rate=20, CT_enabled=True, num_CTs = 1, CT_rate=15, verbose=True):
+    def __init__(self, ID_num, num_docs, doc_front_rate, doc_back_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled=True, lab_rate=20, CT_enabled=True, num_CTs = 1, CT_rate=15, verbose=True):
         self.ID_num = ID_num
         self.erack = queue.PriorityQueue()
         self.rads_queue = queue.PriorityQueue()
@@ -21,12 +21,13 @@ class ED():
         self.WR = queue.PriorityQueue(waiting_size)
 
         self.admit_rate = admit_rate ## average time in minutes to admit a patient
-        self.doc_rate = doc_rate
+        self.doc_front_rate = doc_front_rate
+        self.doc_back_rate = doc_back_rate
 
         self.verbose = verbose ## use debug / status messages
 
         for i in range(self.num_docs):
-            self.DoctorList.append(Doctor(self, 1, self.doc_rate, 8))
+            self.DoctorList.append(Doctor(self, 1, self.doc_front_rate, self.doc_back_rate, 8))
 
 
         if self.CT_enabled:
@@ -69,7 +70,6 @@ class ED():
 
     def dispoPop(self, pt):
         """setter for dispolist - rem pt"""
-        # version 2 will need to delete
         if self.get_verbose():
             print("Patient", pt.get_ID(), "discharged at time", self.get_time())
         LOS_time = pt.get_LOS()
@@ -90,6 +90,7 @@ class ED():
         return total
 
     def get_total_volume(self):
+        """returns a string of department capacity"""
         return str(self.get_volume()) + " / " + str(self.department_size)
 
     def get_total_WR(self):
@@ -144,9 +145,11 @@ class ED():
 
 
     def output_stats(self):
+        """caller for the stats object"""
         return self.stats.output_stats()
 
     def get_verbose(self):
+        """enables status updates / debug text - typically used for the first run of a model"""
         return self.verbose
 
         

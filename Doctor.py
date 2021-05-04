@@ -1,11 +1,12 @@
 class Doctor():
     ID = 0
     """Simulates a doctor. Sees patients from an erack,can handle maxPts at a time"""
-    def __init__(self, ED, pickup_rate, eval_rate, maxPts):
+    def __init__(self, ED, pickup_rate, eval_rate, dispo_rate, maxPts):
         self.ED = ED
         self.erack = ED.erack
         self.pickup_rate = pickup_rate # willingness to pick up a free patient (0-1)
         self.eval_rate = eval_rate # speed of initial eval (minutes)
+        self.dispo_rate = dispo_rate # speed of disposition after eval (minutes)
         self.IDnum = Doctor.ID
         Doctor.ID += 1
         self.NewPts = queue.Queue(1) # signed up, to be seen, currently capped at 1, but will be on priority - can bump for acute pt
@@ -107,12 +108,15 @@ class Doctor():
                 return
         elif to_do == "treated":
             ## dispo pt
-            if self.ED.get_verbose():
-                print("Doctor", self.IDnum, ": dispositioning patient", self.currentPt.get_ID() ,"at", self.get_time())
-            self.currentPt.MDupdate()
-            self.DispoPts.append(self.currentPt)
-            self.ActivePts.remove(self.currentPt)
-            self.currentPt = None
+            probability = np.random.uniform(0,1)
+            dispos_hour = 60 / self.dispo_rate
+            if probability <= (dispos_hour / 60):
+                if self.ED.get_verbose():
+                    print("Doctor", self.IDnum, ": dispositioning patient", self.currentPt.get_ID() ,"at", self.get_time())
+                self.currentPt.MDupdate()
+                self.DispoPts.append(self.currentPt)
+                self.ActivePts.remove(self.currentPt)
+                self.currentPt = None
         else:
             self.currentPt.MDupdate()
             self.currentPt = None

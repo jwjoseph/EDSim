@@ -29,9 +29,9 @@ choice = input("Run custom simulation (Y/N)?: ")
 if choice == "N":
 	for j in range(50):
 		if j == 0:
-			myED = ED(1, 2, 15, 10, 20, 10, 20, True, 20, True, 1, 15, True)
+			myED = ED(1, 2, 15, 5, 10, 20, 10, 20, True, 20, True, 1, 15, True)
 		else:
-			myED = ED(1, 2, 15, 10, 20, 10, 20, True, 20, True, 1, 15, False)
+			myED = ED(1, 2, 15, 5, 10, 20, 10, 20, True, 20, True, 1, 15, False)
 
 		for i in range(480):
 		    myED.update()
@@ -40,10 +40,11 @@ if choice == "N":
 
 else:
 	num_docs = int(input("Number of doctors (1-10): "))
-	doc_rate = int(input("Average initial patient workup time in minutes (1-60): "))
+	doc_front_rate = int(input("Average initial patient workup time in minutes (1-60): "))
+	doc_end_rate = int(input("Average time to disposition an evaluated patient in minutes (1-60): "))
 	patient_rate = int(input("Average number of patient arrivals per hour (1-60): "))
 	#patient_rate = 60 // patient_rate
-	department_size = int(input("Department size (1-100): "))
+	department_size = int(input("Department size (1-200): "))
 	waiting_size = int(input("Waiting room size (1-100): "))
 	admit_rate = int(input("Average wait in minutes for inpatient admission/transport (1-60): "))
 	labs_enabled = input("Simulate lab times (Y/N): ")
@@ -69,9 +70,9 @@ else:
 
 	for j in range(50):
 		if j == 0:
-			myED = ED(1, num_docs, doc_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled, lab_rate, CT_enabled, num_CTs, CT_rate, True)
+			myED = ED(1, num_docs, doc_front_rate, doc_end_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled, lab_rate, CT_enabled, num_CTs, CT_rate, True)
 		else:
-			myED = ED(1, num_docs, doc_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled, lab_rate, CT_enabled, num_CTs, CT_rate, False)
+			myED = ED(1, num_docs, doc_front_rate, doc_end_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled, lab_rate, CT_enabled, num_CTs, CT_rate, False)
 
 
 		for i in range(duration):
