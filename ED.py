@@ -1,5 +1,5 @@
 class ED():
-    def __init__(self, ID_num, num_docs, doc_front_rate, doc_back_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled=True, lab_rate=20, CT_enabled=True, num_CTs = 1, CT_rate=15, verbose=True):
+    def __init__(self, ID_num, num_docs, doc_front_rate, doc_back_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled=True, lab_rate=20, CT_enabled=True, num_CTs = 1, CT_rate=15, use_csv=False, verbose=True):
         self.ID_num = ID_num
         self.erack = queue.PriorityQueue()
         self.rads_queue = queue.PriorityQueue()
@@ -23,6 +23,13 @@ class ED():
         self.admit_rate = admit_rate ## average time in minutes to admit a patient
         self.doc_front_rate = doc_front_rate
         self.doc_back_rate = doc_back_rate
+
+        if use_csv != False:
+            self.arrival_times = use_csv
+            self.arrival_times = {int(k):int(v) for k,v in self.arrival_times.items()}
+            self.use_csv = True # reuse variable (problematic)
+        else:
+            self.use_csv = False
 
         self.verbose = verbose ## use debug / status messages
 
@@ -48,7 +55,7 @@ class ED():
         """return time in hours:minutes, let default be 0700"""
         hours = 7 + (self.get_time() // 60) % 24 
         minutes = self.get_time() % 60
-        return str(hours) + ":" + str(minutes)
+        return str(hours).zfill(2) + ":" + str(minutes).zfill(2)
 
     def get_labs_enabled(self):
         return self.labs_enabled
@@ -113,6 +120,22 @@ class ED():
                     print("Patient", newpt.get_ID(), "left without being seen!")
                 self.stats.update_LWBS()
 
+    def historic_generate_patient(self):
+        """generate a patient (or more) based on a csv of historic arrival times"""
+        if self.arrival_times[self.time] > 0:
+            for i in range(self.arrival_times[self.time]):
+            # a patient was generated
+                if self.get_volume() < self.department_size:
+                    self.erack.put(Patient(self, 3))
+                elif self.WR.qsize() < self.waiting_size:
+                    self.WR.put(Patient(self, 3))
+                else:
+                    newpt = Patient(self, 3)
+                    if self.get_verbose():
+                        print("Patient", newpt.get_ID(), "left without being seen!")
+                    self.stats.update_LWBS()
+
+
     def update_WR_erack(self):
         """check if patients can be brought from the WR to the erack"""
         if self.get_volume() < self.department_size:
@@ -159,7 +182,12 @@ class ED():
         finally outputs to stats"""
         if self.get_verbose():
             print("Time:", self.get_time_pretty(), "(" + str(self.get_time()) + ")" "  In waiting room:", self.get_total_WR(), "  In department:", self.get_total_volume(), "  To be seen:", self.erack.qsize())
-        self.generate_patient_prob()
+        
+        if self.use_csv == False:
+            self.generate_patient_prob()
+        else:
+            self.historic_generate_patient()
+
         if self.labs_enabled:
            self.Laboratory.update()
 

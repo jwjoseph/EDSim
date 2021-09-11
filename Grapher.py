@@ -21,7 +21,7 @@ class Grapher():
 		axs[1, 1].set_ylabel("LOS (min)")
 
 		for ax in axs.flat:
-		    ax.set(xlabel='time')
+		    ax.set(xlabel='simulation time')
 
 		plt.tight_layout()
 

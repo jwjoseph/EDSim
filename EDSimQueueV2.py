@@ -2,6 +2,7 @@ import scipy as sp
 import numpy as np
 import pandas as pd
 import queue
+import csv
 import matplotlib.pyplot as plt
 
 
@@ -20,6 +21,16 @@ def BernoulliTrial(probability):
         return True
     return False
 
+def arrival_record_from_csv():
+	"""turn a csv file into a dictionary of arrival times for the simulation"""
+	visitDict = {}
+
+	with open('arrivals.csv', newline='') as f:
+	    reader = csv.reader(f)
+	    for row in reader:
+	    	visitDict[row[0]]=row[1]
+
+	return visitDict
 
 
 ## def __init__(self, num_docs, doc_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled=True, lab_rate=20, CT_enabled=True, num_CTs = 1, CT_rate=15):
@@ -29,9 +40,10 @@ choice = input("Run custom simulation (Y/N)?: ")
 if choice == "N":
 	for j in range(50):
 		if j == 0:
-			myED = ED(1, 2, 15, 5, 10, 20, 10, 20, True, 20, True, 1, 15, True)
+			myED = ED(1, 2, 15, 5, 10, 20, 10, 20, True, 20, True, 1, 15, False, True)
+			# demonstrate verbose output for one simulation only... then do the remaining 50 runs to average results
 		else:
-			myED = ED(1, 2, 15, 5, 10, 20, 10, 20, True, 20, True, 1, 15, False)
+			myED = ED(1, 2, 15, 5, 10, 20, 10, 20, True, 20, True, 1, 15, False, False)
 
 		for i in range(480):
 		    myED.update()
@@ -39,10 +51,20 @@ if choice == "N":
 		TotalStats.add_dataframe(myED.output_stats())
 
 else:
+	use_csv = input("Use custom arrivals file (Y/N): ")
+	if use_csv == "Y":
+		use_csv = True
+	else:
+		use_csv = False
 	num_docs = int(input("Number of doctors (1-10): "))
 	doc_front_rate = int(input("Average initial patient workup time in minutes (1-60): "))
 	doc_end_rate = int(input("Average time to disposition an evaluated patient in minutes (1-60): "))
-	patient_rate = int(input("Average number of patient arrivals per hour (1-60): "))
+
+	if use_csv == False:
+		patient_rate = int(input("Average number of patient arrivals per hour (1-60): "))
+	else:
+		patient_rate = 10 # default value
+
 	#patient_rate = 60 // patient_rate
 	department_size = int(input("Department size (1-200): "))
 	waiting_size = int(input("Waiting room size (1-100): "))
@@ -64,21 +86,41 @@ else:
 		CT_rate = 15
 		CT_enabled = False
 
-	duration = int(input("Simulation duration in hours (1-72): "))
-	duration = duration * 60
+	if use_csv == False:
+		duration = int(input("Simulation duration in hours (1-72): "))
+		duration = duration * 60
+
+	## if pure simulation, no arrival record, go ahead and run the simulation
+	if use_csv == False:
+		for j in range(50):
+			if j == 0:
+				myED = ED(1, num_docs, doc_front_rate, doc_end_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled, lab_rate, CT_enabled, num_CTs, CT_rate, False, True)
+			else:
+				myED = ED(1, num_docs, doc_front_rate, doc_end_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled, lab_rate, CT_enabled, num_CTs, CT_rate, False, False)
 
 
-	for j in range(50):
-		if j == 0:
-			myED = ED(1, num_docs, doc_front_rate, doc_end_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled, lab_rate, CT_enabled, num_CTs, CT_rate, True)
-		else:
-			myED = ED(1, num_docs, doc_front_rate, doc_end_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled, lab_rate, CT_enabled, num_CTs, CT_rate, False)
+			for i in range(duration):
+			    myED.update()
+
+			TotalStats.add_dataframe(myED.output_stats())
+
+	## using an arrival record
+	else:
+		arrivals = arrival_record_from_csv()
+		duration = len(arrivals)
+
+		for j in range(50):
+			if j == 0:
+				myED = ED(1, num_docs, doc_front_rate, doc_end_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled, lab_rate, CT_enabled, num_CTs, CT_rate, arrivals, True)
+			else:
+				myED = ED(1, num_docs, doc_front_rate, doc_end_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled, lab_rate, CT_enabled, num_CTs, CT_rate, arrivals, False)
 
 
-		for i in range(duration):
-		    myED.update()
+			for i in range(duration):
+			    myED.update()
 
-		TotalStats.add_dataframe(myED.output_stats())
+			TotalStats.add_dataframe(myED.output_stats())
+
 
 
 TotalStats.merge_dataframes()
