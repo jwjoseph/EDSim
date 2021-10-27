@@ -1,5 +1,6 @@
 class ED():
-    def __init__(self, ID_num, num_docs, doc_front_rate, doc_back_rate, patient_rate, department_size, waiting_size, admit_rate, labs_enabled=True, lab_rate=20, CT_enabled=True, num_CTs = 1, CT_rate=15, use_csv=False, verbose=True):
+    def __init__(self, ID_num, num_docs, doc_front_rate, doc_back_rate, patient_rate, department_size, waiting_size, admission_enabled, admit_rate,
+     labs_enabled=True, lab_rate=20, CT_enabled=True, num_CTs = 1, CT_rate=15, use_csv=False, verbose=True):
         self.ID_num = ID_num
         self.erack = queue.PriorityQueue()
         self.rads_queue = queue.PriorityQueue()
@@ -20,6 +21,7 @@ class ED():
         self.waiting_size = waiting_size
         self.WR = queue.PriorityQueue(waiting_size)
 
+        self.admission_enabled = admission_enabled
         self.admit_rate = admit_rate ## average time in minutes to admit a patient
         self.doc_front_rate = doc_front_rate
         self.doc_back_rate = doc_back_rate
@@ -53,7 +55,7 @@ class ED():
 
     def get_time_pretty(self):
         """return time in hours:minutes, let default be 0700"""
-        hours = 7 + (self.get_time() // 60) % 24 
+        hours = (7 + (self.get_time() // 60)) % 24 
         minutes = self.get_time() % 60
         return str(hours).zfill(2) + ":" + str(minutes).zfill(2)
 
@@ -160,10 +162,13 @@ class ED():
 
 
     def admit_patient(self, patient):
-        """admits a patient who is waiting on admission - later update based on capacity"""
-        probability = np.random.uniform(0,1)
-        admit_time = 60/self.admit_rate
-        if probability <= (admit_time/60):
+        """admits a patient who is waiting on admission - current version can be toggled on/off, and admission is based on the rate of admissions. later update based on capacity"""
+        if self.admission_enabled == True:
+            probability = np.random.uniform(0,1)
+            admit_time = 60/self.admit_rate
+            if probability <= (admit_time/60):
+                patient.update()
+        else:
             patient.update()
 
 
